@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <h2>Buscar Livro</h2>
+<input type="text" id="busca" placeholder="Digite o nome..." onkeyup="atualizarLista()">
+<head>
+    <title>Biblioteca Escolar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Sistema de Biblioteca</h1>
+
+<h2>Cadastrar Livro</h2>
+
+<input type="text" id="titulo" placeholder="Titulo do livro">
+<input type="text" id="autor" placeholder="Autor">
+<button onclick="adicionarLivro()">Adicionar</button>
+
+<h2>Lista de Livros</h2>
+<ul id="listaLivros"></ul>
+
+</div>
+
+<script>
+
+let livros = JSON.parse(localStorage.getItem("livros")) || [];
+
+function adicionarLivro() {
+    let titulo = document.getElementById("titulo").value;
+    let autor = document.getElementById("autor").value;
+
+    if (titulo === "" || autor === "") {
+        alert("Preencha tudo");
+        return;
+    }
+
+    livros.push({
+        titulo: titulo,
+        autor: autor,
+        emprestado: false
+    });
+
+    localStorage.setItem("livros", JSON.stringify(livros));
+    atualizarLista();
+}
+
+function atualizarLista() {
+    let lista = document.getElementById("listaLivros");
+    let busca = document.getElementById("busca").value.toLowerCase();
+
+    lista.innerHTML = "";
+
+    livros.forEach((livro, index) => {
+
+        if (!livro.titulo.toLowerCase().includes(busca)) {
+            return;
+        }
+
+        let item = document.createElement("li");
+
+        let status = livro.emprestado 
+            ? ` (Emprestado para: ${livro.aluno} em ${livro.data})`
+            : " (Disponível)";
+
+        item.innerHTML = `
+            ${livro.titulo} - ${livro.autor} ${status}
+            <br>
+            <button class="btn-emprestar" onclick="emprestar(${index})">Emprestar</button>
+            <button class="btn-devolver" onclick="devolver(${index})">Devolver</button>
+            <button class="btn-excluir" onclick="excluir(${index})">Excluir</button>
+        `;
+
+        lista.appendChild(item);
+    });
+}
+
+function emprestar(index) {
+    let nome = prompt("Nome do aluno:");
+
+    if (!nome) return;
+
+    let data = new Date().toLocaleDateString();
+
+    livros[index].emprestado = true;
+    livros[index].aluno = nome;
+    livros[index].data = data;
+
+    localStorage.setItem("livros", JSON.stringify(livros));
+    atualizarLista();
+}
+
+function devolver(index) {
+    livros[index].emprestado = false;
+    livros[index].aluno = "";
+    livros[index].data = "";
+
+    localStorage.setItem("livros", JSON.stringify(livros));
+    atualizarLista();
+}
+function excluir(index) {
+    if (confirm("Deseja excluir este livro?")) {
+        livros.splice(index, 1);
+        localStorage.setItem("livros", JSON.stringify(livros));
+        atualizarLista();
+    }
+}
+// ISSO AQUI É IMPORTANTE
+atualizarLista();
+
+</script>
+</body>
+</html>
